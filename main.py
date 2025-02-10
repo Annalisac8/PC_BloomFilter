@@ -26,7 +26,7 @@ if __name__ == '__main__':
     """Test del Filtro di Bloom con indirizzi email"""
 
     # Creazione degli insiemi di test
-    numero_elementi = 10  # Numero di email da inserire
+    numero_elementi = 1000  # Numero di email da inserire
     email_inserite = []
     email_da_verificare = []
 
@@ -36,11 +36,12 @@ if __name__ == '__main__':
         email_inserite.append(genera_email_casuale())  # Genera email casuali
 
     # Genero alcune email già inserite e alcune nuove
-    email_da_verificare = email_inserite[:5] + [genera_email_casuale() for _ in range(5)]
+    email_da_verificare = email_inserite[:50] + [genera_email_casuale() for _ in range(50)]
 
     # Creazione del filtro di Bloom
     filtro = BloomFilter(5000, 20)  # 5000 bit, 20 funzioni hash
 
+"""
     # Test di inserimento
     tempo_inizio = time.time()
     filtro.inizializza(email_inserite)
@@ -64,18 +65,19 @@ if __name__ == '__main__':
     print("\n📊 **Risultati Finali**")
     print(f"Email correttamente trovate nel filtro: {email_presenti}/{len(email_da_verificare)}")
     print(f"Falsi positivi: {falsi_positivi}/{len(email_da_verificare)}")
+"""
 
-    # Test di inserimento
-    tempo_inizio = time.time()
-    filtro.inizializza(email_inserite)
-    tempo_fine = time.time()
-    print("Tempo di esecuzione per l'inserimento degli elementi:", tempo_fine - tempo_inizio, "secondi")
+# Test di inserimento
+tempo_inizio = time.time()
+filtro.inizializza(email_inserite)
+tempo_fine = time.time()
+print("Tempo di esecuzione per l'inserimento degli elementi:", tempo_fine - tempo_inizio, "secondi")
 
-    # Test di verifica
-    tempo_inizio = time.time()
-    for parola in email_da_verificare:
-        filtro.verifica(parola)
-    tempo_fine = time.time()
-    print("Tempo di esecuzione per la verifica degli elementi:", tempo_fine - tempo_inizio, "secondi")
+# Test di verifica
+tempo_inizio = time.time()
+for parola in email_da_verificare:
+    filtro.verifica(parola)
+tempo_fine = time.time()
+print("Tempo di esecuzione per la verifica degli elementi:", tempo_fine - tempo_inizio, "secondi")
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
