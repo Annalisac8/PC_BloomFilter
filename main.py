@@ -23,49 +23,45 @@ def genera_email_casuale():
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    # Creazione degli insiemi di test
-    numero_elementi = 100  # Numero di email da inserire
-    email_inserite = []
-    email_da_verificare = []
+    # Parametri del test
+    dimensione_filtro = 10000  # Numero di bit nel filtro
+    numero_hash = 100  # Numero di funzioni hash
+    numero_thread = 4  # Numero di thread per la versione parallela
+    numero_elementi = 100000  # Numero di email da inserire
 
-    random.seed(42)  # Per ottenere sempre gli stessi risultati
-
-    for i in range(numero_elementi):
-        email_inserite.append(genera_email_casuale())  # Genera email casuali
-
-    # Genero alcune email già inserite e alcune nuove
-    email_da_verificare = email_inserite[:50] + [genera_email_casuale() for _ in range(50)]
+    # Generazione delle email
+    random.seed(42)  # Per ripetibilità dei risultati
+    email_inserite = [genera_email_casuale() for _ in range(numero_elementi)]
+    email_da_verificare = email_inserite[:2500] + [genera_email_casuale() for _ in range(2500)]
 
     """Test del Filtro di Bloom sequenziale"""
-    # Creazione del filtro di Bloom
-    filtro = BloomFilter(1000, 5)  # 100 bit, 5 funzioni hash
+    filtro_seq = BloomFilter(dimensione_filtro, numero_hash)
 
-    print("Esecuzione sequenziale: ")
-    # Test di inserimento
+    print("Esecuzione sequenziale:")
     tempo_inizio = time.time()
-    filtro.inizializza(email_inserite)
+    filtro_seq.inizializza(email_inserite)
     tempo_fine = time.time()
-    print("Tempo di esecuzione per l'inserimento degli elementi:", tempo_fine - tempo_inizio, "secondi")
-
-    # Test di verifica
-    tempo_inizio = time.time()
-    for parola in email_da_verificare:
-        filtro.verifica(parola)
-    tempo_fine = time.time()
-    print("Tempo di esecuzione per la verifica degli elementi:", tempo_fine - tempo_inizio, "secondi")
-
-    print("Esecuzione Parallela:")
-    filtroPar = BloomFilterParallelo(1000, 5,2)
+    print(f"Tempo inserimento: {tempo_fine - tempo_inizio:.5f} sec")
 
     tempo_inizio = time.time()
-    filtroPar.inizializza(email_inserite)
+    for email in email_da_verificare:
+        filtro_seq.verifica(email)
     tempo_fine = time.time()
-    print("Tempo di esecuzione per l'inserimento:", tempo_fine - tempo_inizio)
+    print(f"Tempo verifica: {tempo_fine - tempo_inizio:.5f} sec")
+
+    """Test del Filtro di Bloom parallelo"""
+    filtro_par = BloomFilterParallelo(dimensione_filtro, numero_hash, numero_thread)
+
+    print("\nEsecuzione parallela:")
+    tempo_inizio = time.time()
+    filtro_par.inizializza(email_inserite)
+    tempo_fine = time.time()
+    print(f"Tempo inserimento: {tempo_fine - tempo_inizio:.5f} sec")
 
     tempo_inizio = time.time()
-    risultatoPar = filtroPar.verifica_parallela(email_da_verificare)
+    filtro_par.verifica_parallela(email_da_verificare)
     tempo_fine = time.time()
-    print("Tempo di esecuzione per la verifica:", tempo_fine - tempo_inizio)
+    print(f"Tempo verifica: {tempo_fine - tempo_inizio:.5f} sec")
 
 
 """
