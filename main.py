@@ -7,6 +7,7 @@ import time
 import string
 import random
 from sequential_BloomFilter import BloomFilter  # Importa la classe
+from parallel_BloomFilter import BloomFilterParallelo  # Importa la classe
 
 
 # Funzione per generare parole casuali
@@ -22,10 +23,8 @@ def genera_email_casuale():
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    """Test del Filtro di Bloom con indirizzi email"""
-
     # Creazione degli insiemi di test
-    numero_elementi = 1000  # Numero di email da inserire
+    numero_elementi = 100  # Numero di email da inserire
     email_inserite = []
     email_da_verificare = []
 
@@ -37,8 +36,37 @@ if __name__ == '__main__':
     # Genero alcune email già inserite e alcune nuove
     email_da_verificare = email_inserite[:50] + [genera_email_casuale() for _ in range(50)]
 
+    """Test del Filtro di Bloom sequenziale"""
     # Creazione del filtro di Bloom
-    filtro = BloomFilter(5000, 20)  # 5000 bit, 20 funzioni hash
+    filtro = BloomFilter(1000, 5)  # 100 bit, 5 funzioni hash
+
+    print("Esecuzione sequenziale: ")
+    # Test di inserimento
+    tempo_inizio = time.time()
+    filtro.inizializza(email_inserite)
+    tempo_fine = time.time()
+    print("Tempo di esecuzione per l'inserimento degli elementi:", tempo_fine - tempo_inizio, "secondi")
+
+    # Test di verifica
+    tempo_inizio = time.time()
+    for parola in email_da_verificare:
+        filtro.verifica(parola)
+    tempo_fine = time.time()
+    print("Tempo di esecuzione per la verifica degli elementi:", tempo_fine - tempo_inizio, "secondi")
+
+    print("Esecuzione Parallela:")
+    filtroPar = BloomFilterParallelo(1000, 5,2)
+
+    tempo_inizio = time.time()
+    filtroPar.inizializza(email_inserite)
+    tempo_fine = time.time()
+    print("Tempo di esecuzione per l'inserimento:", tempo_fine - tempo_inizio)
+
+    tempo_inizio = time.time()
+    risultatoPar = filtroPar.verifica_parallela(email_da_verificare)
+    tempo_fine = time.time()
+    print("Tempo di esecuzione per la verifica:", tempo_fine - tempo_inizio)
+
 
 """
     # Test di inserimento
@@ -66,17 +94,5 @@ if __name__ == '__main__':
     print(f"Falsi positivi: {falsi_positivi}/{len(email_da_verificare)}")
 """
 
-# Test di inserimento
-tempo_inizio = time.time()
-filtro.inizializza(email_inserite)
-tempo_fine = time.time()
-print("Tempo di esecuzione per l'inserimento degli elementi:", tempo_fine - tempo_inizio, "secondi")
-
-# Test di verifica
-tempo_inizio = time.time()
-for parola in email_da_verificare:
-    filtro.verifica(parola)
-tempo_fine = time.time()
-print("Tempo di esecuzione per la verifica degli elementi:", tempo_fine - tempo_inizio, "secondi")
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

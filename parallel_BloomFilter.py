@@ -31,3 +31,9 @@ class BloomFilterParallelo:
             if self.array_bit[calcola_hash(elemento, self.dimensione, i)] == 0:
                 return False # Se uno dei bit è 0, l'elemento sicuramente non è presente
         return True # Potrebbe essere presente (ma esistono falsi positivi)
+
+    def verifica_parallela(self, elementi): #funzione per la verifica parallela
+        risultato = []
+        # Applico contemporaneamente la stessa funzione di verifica a più elementi
+        risultato.extend(Parallel(n_jobs=self.numero_thread)(delayed(self.verifica)(elementi[i]) for i in range(len(elementi))))
+        return risultato
