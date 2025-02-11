@@ -6,52 +6,46 @@
 import time
 import string
 import random
-from sequential_BloomFilter import BloomFilter  # Importa la classe
-from parallel_BloomFilter import BloomFilterParallelo  # Importa la classe
+import pandas as pd
+from sequential_BloomFilter import BloomFilter
+from parallel_BloomFilter import BloomFilterParallelo
 
-
-# Funzione per generare parole casuali
 def genera_parola_casuale(lunghezza):
     return ''.join(random.choices(string.ascii_lowercase, k=lunghezza))
 
-
-    # Funzione per generare email casuali
 def genera_email_casuale():
     domini = ["gmail.com", "yahoo.com", "outlook.com", "protonmail.com", "icloud.com"]
     nome = ''.join(random.choices(string.ascii_lowercase, k=7))
     return nome + "@" + random.choice(domini)
 
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    # Parametri del test
-    dimensione_filtro = 10000  # Numero di bit nel filtro
-    numero_hash = 100  # Numero di funzioni hash
-    numero_thread = 4  # Numero di thread per la versione parallela
-    numero_elementi = 100000  # Numero di email da inserire
+    dimensione_filtro = 10000
+    numero_hash = 100
+    numero_thread = 4
+    numero_elementi = 10000
 
-    # Generazione delle email
-    random.seed(42)  # Per ripetibilità dei risultati
+    random.seed(42)
     email_inserite = [genera_email_casuale() for _ in range(numero_elementi)]
-    email_da_verificare = email_inserite[:2500] + [genera_email_casuale() for _ in range(2500)]
+    #prendo le prime [:x] email da email inserite e genero altre (y) casuali per un tot di x+y email da verificare
+    email_da_verificare = email_inserite[:1000] + [genera_email_casuale() for _ in range(1000)] #2500
 
-    """Test del Filtro di Bloom sequenziale"""
+    """ Test del Filtro di Bloom sequenziale """
     filtro_seq = BloomFilter(dimensione_filtro, numero_hash)
-
     print("Esecuzione sequenziale:")
     tempo_inizio = time.time()
     filtro_seq.inizializza(email_inserite)
     tempo_fine = time.time()
     print(f"Tempo inserimento: {tempo_fine - tempo_inizio:.5f} sec")
 
+    risultati_seq = []
     tempo_inizio = time.time()
     for email in email_da_verificare:
-        filtro_seq.verifica(email)
+        risultati_seq.append(filtro_seq.verifica(email))
     tempo_fine = time.time()
     print(f"Tempo verifica: {tempo_fine - tempo_inizio:.5f} sec")
 
-    """Test del Filtro di Bloom parallelo"""
+    """ Test del Filtro di Bloom parallelo """
     filtro_par = BloomFilterParallelo(dimensione_filtro, numero_hash, numero_thread)
-
     print("\nEsecuzione parallela:")
     tempo_inizio = time.time()
     filtro_par.inizializza(email_inserite)
@@ -59,10 +53,45 @@ if __name__ == '__main__':
     print(f"Tempo inserimento: {tempo_fine - tempo_inizio:.5f} sec")
 
     tempo_inizio = time.time()
-    filtro_par.verifica_parallela(email_da_verificare)
+    risultati_par = filtro_par.verifica_parallela(email_da_verificare)
     tempo_fine = time.time()
     print(f"Tempo verifica: {tempo_fine - tempo_inizio:.5f} sec")
 
+"""
+    #per visualizzare risultati sequenziale 
+    email_presenti_seq = sum(1 for i, email in enumerate(email_da_verificare) if risultati_seq[i] and email in email_inserite)
+    falsi_positivi_seq = sum(1 for i, email in enumerate(email_da_verificare) if risultati_seq[i] and email not in email_inserite)
+
+    print("\n📊 **Risultati Sequenziale**")
+    print(f"Email correttamente trovate: {email_presenti_seq}/{len(email_da_verificare)}")
+    print(f"Falsi positivi: {falsi_positivi_seq}/{len(email_da_verificare)}")
+
+    df_seq = pd.DataFrame({
+        "Email": email_da_verificare,
+        "Risultato Filtro": ["Presente" if res else "Non Presente" for res in risultati_seq],
+        "Effettivamente Presente": ["✅" if email in email_inserite else "❌" for email in email_da_verificare]
+    })
+    print("\n📌 **Tabella Risultati Sequenziale**")
+    print(df_seq.head(10))  # Mostra solo le prime 10 righe per leggibilità
+"""
+
+"""
+    #per visualizzare risultati parallelo
+    email_presenti_par = sum(1 for i, email in enumerate(email_da_verificare) if risultati_par[i] and email in email_inserite)
+    falsi_positivi_par = sum(1 for i, email in enumerate(email_da_verificare) if risultati_par[i] and email not in email_inserite)
+
+    print("\n📊 **Risultati Parallelo**")
+    print(f"Email correttamente trovate: {email_presenti_par}/{len(email_da_verificare)}")
+    print(f"Falsi positivi: {falsi_positivi_par}/{len(email_da_verificare)}")
+
+    df_par = pd.DataFrame({
+        "Email": email_da_verificare,
+        "Risultato Filtro": ["Presente" if res else "Non Presente" for res in risultati_par],
+        "Effettivamente Presente": ["✅" if email in email_inserite else "❌" for email in email_da_verificare]
+    })
+    print("\n📌 **Tabella Risultati Parallelo**")
+    print(df_par.head(10))  # Mostra solo le prime 10 righe per leggibilità
+"""
 
 """
     # Test di inserimento
